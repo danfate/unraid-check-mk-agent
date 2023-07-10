@@ -21,14 +21,16 @@ jobs:
         run: |
           container_id=$(docker create "$image")
           docker cp "$container_id:$source_path" "$destination_path"
+
+      - name: Create Slackware package
+        run: |
+          docker run -it --rm -v $(pwd)/:/build vbatts/slackware:latest sh /build/source/compile_docker.sh
+
       - name: Push File
         run: |
           git config --global user.name 'GitHub Action'
           git config --global user.email 'action@github.com'
-          git add packages/check-mk-agent_2.1.0p29-1_all.deb
-          git commit -m "Add deb test version 2.1.0p29"
+          git add packages/check_mk_agent-"$(date +'%Y.%m.%d')".tgz packages/check_mk_agent-"$(date +'%Y.%m.%d')".tgz.md5
+          git commit -m "Add check_mk_agent test version 2.1.0p29"
       - name: Push changes
         uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
