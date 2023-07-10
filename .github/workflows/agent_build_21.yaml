@@ -1,0 +1,86 @@
+name: Build Unraid check_mk agent 2.1.0pxx
+on:
+  schedule:
+    - cron: '0 0 * * 0'
+
+env:
+  image: 'checkmk/check-mk-raw'
+  version: '21' #2.1.0pxx
+  destination_path: 'check_mk_agent'
+
+jobs:
+  extract-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout all tags and branches
+        uses: actions/checkout@v3
+
+      - name: fetch latest check_mk agent image
+        run : |
+          current_version=$(cat build/version_$version)
+          latest_version=$(curl -s https://hub.docker.com/v2/repositories/checkmk/check-mk-raw/tags\?page_size\=1000 | jq -r '.results[].name' | grep -oP "2\.1\.0p\d+" | sort -V | tail -n 1)
+
+          if [[ "$latest_version" > "$current_version" ]]; then
+              echo "New version found: $latest_version"
+               echo "$latest_version" > build/version_$version
+              echo "latest_version=$(echo $latest_version)" >> $GITHUB_ENV
+          else
+              echo "No new version found."
+          fi
+
+      - name: Check if Pull Request already exists
+        id: check_pr
+        run: |
+          REPO_OWNER=$(echo $GITHUB_REPOSITORY | cut -d'/' -f1)
+          REPO_NAME=$(echo $GITHUB_REPOSITORY | cut -d'/' -f2)
+          PULL_REQUEST_BRANCH=bump-${{ env.latest_version }}
+          
+          # Use GitHub REST API to check if the pull request exists
+          RESPONSE=$(curl \
+             -H "Accept: application/vnd.github.v3+json" \
+             "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/pulls?head=$REPO_OWNER:$PULL_REQUEST_BRANCH")
+          
+          # Check if the response is empty (means the pull request doesn't exist)
+          if [ -z "$RESPONSE" ]; then
+            echo "The pull request does not exist."
+          else
+            echo "The pull request already exists."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Extract
+        if: '!steps.check_pr.outputs.skip'
+        run: |
+          container_id=$(docker create "$image:$latest_version")
+          docker cp "$container_id:/opt/omd/versions/$latest_version.cre/share/check_mk/agents/check-mk-agent_$latest_version-1_all.deb" "$destination_path"
+
+      - name: Create Slackware package
+        if: '!steps.check_pr.outputs.skip'
+        run: |
+          docker run --rm -v $(pwd)/:/build vbatts/slackware:latest sh /build/source/compile_docker.sh
+
+      - name: Update plugin file
+        if: '!steps.check_pr.outputs.skip'
+        run: |
+          md5_hash=$(md5sum packages/check_mk_agent-"$(date +'%Y.%m.%d').$version".tgz | cut -d' ' -f1)
+          sed -i 's/<!ENTITY version   "[^"]*">/<!ENTITY version   "'$(date +'%Y.%m.%d').$version'">/' check_mk_agent$version.plg
+          sed -i 's@<!ENTITY md5       "[^"]*">@<!ENTITY md5       "'"${md5_hash}"'">@' check_mk_agent$version.plg
+          sed -i "/<CHANGES>/{n;s/.*/\n###$(date +'%Y.%m.%d')\n- Bumped checkmk_agent to $latest_version\n&/}" check_mk_agent$version.plg
+      
+      - name: Create Pull Request
+        if: '!steps.check_pr.outputs.skip'
+        uses: peter-evans/create-pull-request@v5
+        with: 
+          commit-message: Bump check_mk_agent to ${{ env.latest_version }}
+          committer: GitHub <noreply@github.com>
+          author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
+          branch: bump-${{ env.latest_version }}
+          delete-branch: true
+          title: 'Check_mk_agent to ${{ env.latest_version }}'
+          body: |
+            Bump Checkmk agent to ${{ env.latest_version }}
+          labels: |
+            automated pr
+          assignees: Donimax
+          reviewers: Donimax
