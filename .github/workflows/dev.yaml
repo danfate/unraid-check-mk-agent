@@ -19,8 +19,8 @@ jobs:
 
       - name: Extract and Push File
         run: |
-          container_id=$(docker create "env.image")
-          docker cp "env.container_id:env.source_path" "env.destination_path"
+          container_id=$(docker create "$image")
+          docker cp "$container_id:$source_path" "$destination_path"
           
           git config --global user.name 'GitHub Action'
           git config --global user.email 'action@github.com'
