@@ -19,7 +19,6 @@ jobs:
           ref: 'develop' # Testing
 
       - name: fetch latest check_mk agent image
-        id: check_version
         run : |
           current_version=$(cat $version_file)
           latest_version=$(curl -s https://hub.docker.com/v2/repositories/checkmk/check-mk-raw/tags\?page_size\=1000 | jq -r '.results[].name' | grep -oP "2\.1\.0p\d+" | sort -V | tail -n 1)
@@ -30,12 +29,10 @@ jobs:
               echo "latest_version=$(echo $latest_version)" >> $GITHUB_ENV
           else
               echo "No new version found."
-              echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Check if Pull Request already exists
         id: check_pr
-        if: '!steps.check_version.outputs.skip'
         run: |
           REPO_OWNER=$(echo $GITHUB_REPOSITORY | cut -d'/' -f1)
           REPO_NAME=$(echo $GITHUB_REPOSITORY | cut -d'/' -f2)
