@@ -19,6 +19,7 @@ jobs:
           ref: 'develop' # Testing
 
       - name: fetch latest check_mk agent image
+        id: check_version
         run : |
           current_version=$(cat $version_file)
           latest_version=$(curl -s https://hub.docker.com/v2/repositories/checkmk/check-mk-raw/tags\?page_size\=1000 | jq -r '.results[].name' | grep -oP "2\.1\.0p\d+" | sort -V | tail -n 1)
@@ -29,10 +30,12 @@ jobs:
               echo "latest_version=$(echo $latest_version)" >> $GITHUB_ENV
           else
               echo "No new version found."
-              exit 0
+              echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Check if Pull Request already exists
+        id: check_pr
+        if: steps.check_version.outputs.skip == 'true'
         run: |
           REPO_OWNER=$(echo $GITHUB_REPOSITORY | cut -d'/' -f1)
           REPO_NAME=$(echo $GITHUB_REPOSITORY | cut -d'/' -f2)
@@ -48,19 +51,22 @@ jobs:
             echo "The pull request does not exist."
           else
             echo "The pull request already exists."
-            exit 0
+            echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Extract
+        if: steps.check_version.outputs.skip == 'true' || steps.check_pr.outputs.skip == 'true'
         run: |
           container_id=$(docker create "$image:$latest_version")
           docker cp "$container_id:/opt/omd/versions/$latest_version.cre/share/check_mk/agents/check-mk-agent_$latest_version-1_all.deb" "$destination_path"
 
       - name: Create Slackware package
+        if: steps.check_version.outputs.skip == 'true' || steps.check_pr.outputs.skip == 'true'
         run: |
           docker run --rm -v $(pwd)/:/build vbatts/slackware:latest sh /build/source/compile_docker.sh
 
       - name: Update plugin file
+        if: steps.check_version.outputs.skip == 'true' || steps.check_pr.outputs.skip == 'true'
         run: |
           md5_hash=$(md5sum packages/check_mk_agent-"$(date +'%Y.%m.%d')".tgz | cut -d' ' -f1)
           sed -i 's/<!ENTITY version   "[^"]*">/<!ENTITY version   "'$(date +'%Y.%m.%d')'">/' $plugin_file
@@ -68,6 +74,7 @@ jobs:
           sed -i "/<CHANGES>/{n;s/.*/\n###$(date +'%Y.%m.%d')\n- Bumped checkmk_agent to $latest_version\n&/}" $plugin_file
       
       - name: Create Pull Request
+        if: steps.check_version.outputs.skip == 'true' || steps.check_pr.outputs.skip == 'true'
         uses: peter-evans/create-pull-request@v5
         with: 
           commit-message: Bump check_mk_agent to ${{ env.latest_version }}
