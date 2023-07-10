@@ -32,6 +32,25 @@ jobs:
               exit 0
           fi
 
+      - name: Check if Pull Request already exists
+        run: |
+          REPO_OWNER=$(echo $GITHUB_REPOSITORY | cut -d'/' -f1)
+          REPO_NAME=$(echo $GITHUB_REPOSITORY | cut -d'/' -f2)
+          PULL_REQUEST_BRANCH=bump-${{ env.latest_version }}
+          
+          # Use GitHub REST API to check if the pull request exists
+          RESPONSE=$(curl \
+             -H "Accept: application/vnd.github.v3+json" \
+             "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/pulls?head=$REPO_OWNER:$PULL_REQUEST_BRANCH")
+          
+          # Check if the response is empty (means the pull request doesn't exist)
+          if [ -z "$RESPONSE" ]; then
+            echo "The pull request does not exist."
+          else
+            echo "The pull request already exists."
+            exit 0
+          fi
+
       - name: Extract
         run: |
           container_id=$(docker create "$image:$latest_version")
