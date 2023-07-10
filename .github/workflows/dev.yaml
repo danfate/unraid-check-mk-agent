@@ -35,7 +35,7 @@ jobs:
 
       - name: Check if Pull Request already exists
         id: check_pr
-        if: steps.check_version.outputs.skip == 'true'
+        if: '!steps.check_version.outputs.skip'
         run: |
           REPO_OWNER=$(echo $GITHUB_REPOSITORY | cut -d'/' -f1)
           REPO_NAME=$(echo $GITHUB_REPOSITORY | cut -d'/' -f2)
@@ -55,18 +55,18 @@ jobs:
           fi
 
       - name: Extract
-        if: steps.check_version.outputs.skip == 'true' || steps.check_pr.outputs.skip == 'true'
+        if: '!steps.check_version.outputs.skip || !steps.check_pr.outputs.skip'
         run: |
           container_id=$(docker create "$image:$latest_version")
           docker cp "$container_id:/opt/omd/versions/$latest_version.cre/share/check_mk/agents/check-mk-agent_$latest_version-1_all.deb" "$destination_path"
 
       - name: Create Slackware package
-        if: steps.check_version.outputs.skip == 'true' || steps.check_pr.outputs.skip == 'true'
+        if: '!steps.check_version.outputs.skip || !steps.check_pr.outputs.skip'
         run: |
           docker run --rm -v $(pwd)/:/build vbatts/slackware:latest sh /build/source/compile_docker.sh
 
       - name: Update plugin file
-        if: steps.check_version.outputs.skip == 'true' || steps.check_pr.outputs.skip == 'true'
+        if: '!steps.check_version.outputs.skip || !steps.check_pr.outputs.skip'
         run: |
           md5_hash=$(md5sum packages/check_mk_agent-"$(date +'%Y.%m.%d')".tgz | cut -d' ' -f1)
           sed -i 's/<!ENTITY version   "[^"]*">/<!ENTITY version   "'$(date +'%Y.%m.%d')'">/' $plugin_file
@@ -74,7 +74,7 @@ jobs:
           sed -i "/<CHANGES>/{n;s/.*/\n###$(date +'%Y.%m.%d')\n- Bumped checkmk_agent to $latest_version\n&/}" $plugin_file
       
       - name: Create Pull Request
-        if: steps.check_version.outputs.skip == 'true' || steps.check_pr.outputs.skip == 'true'
+        if: '!steps.check_version.outputs.skip || !steps.check_pr.outputs.skip'
         uses: peter-evans/create-pull-request@v5
         with: 
           commit-message: Bump check_mk_agent to ${{ env.latest_version }}
