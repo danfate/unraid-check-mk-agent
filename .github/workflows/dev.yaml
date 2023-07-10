@@ -24,7 +24,7 @@ jobs:
 
       - name: Create Slackware package
         run: |
-          docker run -it --rm -v $(pwd)/:/build vbatts/slackware:latest sh /build/source/compile_docker.sh
+          docker run --rm -v $(pwd)/:/build vbatts/slackware:latest sh /build/source/compile_docker.sh
 
       - name: Push File
         run: |
