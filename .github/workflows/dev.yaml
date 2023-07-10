@@ -3,7 +3,7 @@ on: [workflow_dispatch]
 
 env:
   image: 'checkmk/check-mk-raw'
-  source_path: '/opt/omd/versions/2.1.0p29.cre/share/check_mk/agents/check-mk-agent_2.1.0p29-1_all.deb'
+  version_file: 'version_21'
   destination_path: 'check_mk_agent'
 
 jobs:
@@ -19,11 +19,12 @@ jobs:
 
       - name: fetch latest check_mk agent image
         run : |
-          current_version=$(cat version_21)
+          current_version=$(cat $version_file)
           latest_version=$(curl -s https://hub.docker.com/v2/repositories/checkmk/check-mk-raw/tags\?page_size\=1000 | jq -r '.results[].name' | grep -oP "2\.1\.0p\d+" | sort -V | tail -n 1)
 
           if [[ "$latest_version" > "$current_version" ]]; then
               echo "New version found: $latest_version"
+               echo "$latest_version" > $version_file
               echo "latest_version=$(echo $latest_version)" >> $GITHUB_ENV
           else
               echo "No new version found."
@@ -43,7 +44,7 @@ jobs:
         run: |
           git config --global user.name 'GitHub Action'
           git config --global user.email 'action@github.com'
-          git add packages/check_mk_agent-"$(date +'%Y.%m.%d')".tgz packages/check_mk_agent-"$(date +'%Y.%m.%d')".tgz.md5
+          git add packages/check_mk_agent-"$(date +'%Y.%m.%d')".tgz packages/check_mk_agent-"$(date +'%Y.%m.%d')".tgz.md5 $version_file
           git commit -m "Add check_mk_agent test $latest_version"
       - name: Push changes
         uses: ad-m/github-push-action@master
