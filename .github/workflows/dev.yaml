@@ -2,7 +2,7 @@ name: test workflows
 on: [workflow_dispatch]
 
 env:
-  image: 'checkmk/check-mk-raw:2.1.0p29'
+  image: 'checkmk/check-mk-raw'
   source_path: '/opt/omd/versions/2.1.0p29.cre/share/check_mk/agents/check-mk-agent_2.1.0p29-1_all.deb'
   destination_path: 'check_mk_agent'
 
@@ -17,10 +17,22 @@ jobs:
           fetch-depth: 0
           ref: 'develop' # Testing
 
+      - name: fetch latest check_mk agent image
+        run : |
+          current_version=$(cat version_21.txt)
+          latest_version=$(curl -s https://hub.docker.com/v2/repositories/checkmk/check-mk-raw/tags\?page_size\=1000 | jq -r '.results[].name' | grep -oP "2\.1\.0p\d+" | sort -V | tail -n 1
+
+          if [[ "$latest_version" > "$current_version" ]]; then
+              echo "New version found: $latest_version"
+          else
+              echo "No new version found."
+              exit 0
+          fi
+
       - name: Extract
         run: |
-          container_id=$(docker create "$image")
-          docker cp "$container_id:$source_path" "$destination_path"
+          container_id=$(docker create "$image:$latest_version")
+          docker cp "$container_id:/opt/omd/versions/$latest_version.cre/share/check_mk/agents/check-mk-agent_$latest_version-1_all.deb" "$destination_path"
 
       - name: Create Slackware package
         run: |
