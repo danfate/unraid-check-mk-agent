@@ -20,7 +20,7 @@ jobs:
       - name: fetch latest check_mk agent image
         run : |
           current_version=$(cat version_21)
-          latest_version=$(curl -s https://hub.docker.com/v2/repositories/checkmk/check-mk-raw/tags\?page_size\=1000 | jq -r '.results[].name' | grep -oP "2\.1\.0p\d+" | sort -V | tail -n 1
+          latest_version=$(curl -s https://hub.docker.com/v2/repositories/checkmk/check-mk-raw/tags\?page_size\=1000 | jq -r '.results[].name' | grep -oP "2\.1\.0p\d+" | sort -V | tail -n 1)
 
           if [[ "$latest_version" > "$current_version" ]]; then
               echo "New version found: $latest_version"
