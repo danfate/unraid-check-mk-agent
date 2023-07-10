@@ -4,7 +4,7 @@ on: [workflow_dispatch]
 env:
   image: 'checkmk/check-mk-raw:2.1.0p29'
   source_path: '/opt/omd/versions/2.1.0p29.cre/share/check_mk/agents/check-mk-agent_2.1.0p29-1_all.deb'
-  destination_path: 'packages'
+  destination_path: 'check_mk_agent'
 
 jobs:
   extract-push:
