@@ -34,3 +34,5 @@ jobs:
           git commit -m "Add check_mk_agent test version 2.1.0p29"
       - name: Push changes
         uses: ad-m/github-push-action@master
+        with:
+          branch: ${{ github.ref }}
