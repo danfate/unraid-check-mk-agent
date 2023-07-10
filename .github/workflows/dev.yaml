@@ -30,25 +30,25 @@ jobs:
               echo "No new version found."
           fi
 
-      # - name: Check if Pull Request already exists
-      #   id: check_pr
-      #   run: |
-      #     REPO_OWNER=$(echo $GITHUB_REPOSITORY | cut -d'/' -f1)
-      #     REPO_NAME=$(echo $GITHUB_REPOSITORY | cut -d'/' -f2)
-      #     PULL_REQUEST_BRANCH=bump-${{ env.latest_version }}
+      - name: Check if Pull Request already exists
+        id: check_pr
+        run: |
+          REPO_OWNER=$(echo $GITHUB_REPOSITORY | cut -d'/' -f1)
+          REPO_NAME=$(echo $GITHUB_REPOSITORY | cut -d'/' -f2)
+          PULL_REQUEST_BRANCH=bump-${{ env.latest_version }}
           
-      #     # Use GitHub REST API to check if the pull request exists
-      #     RESPONSE=$(curl \
-      #        -H "Accept: application/vnd.github.v3+json" \
-      #        "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/pulls?head=$REPO_OWNER:$PULL_REQUEST_BRANCH")
+          # Use GitHub REST API to check if the pull request exists
+          RESPONSE=$(curl \
+             -H "Accept: application/vnd.github.v3+json" \
+             "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/pulls?head=$REPO_OWNER:$PULL_REQUEST_BRANCH")
           
-      #     # Check if the response is empty (means the pull request doesn't exist)
-      #     if [ -z "$RESPONSE" ]; then
-      #       echo "The pull request does not exist."
-      #     else
-      #       echo "The pull request already exists."
-      #       echo "skip=true" >> "$GITHUB_OUTPUT"
-      #     fi
+          # Check if the response is empty (means the pull request doesn't exist)
+          if [ -z "$RESPONSE" ]; then
+            echo "The pull request does not exist."
+          else
+            echo "The pull request already exists."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Extract
         if: '!steps.check_pr.outputs.skip'
@@ -85,14 +85,3 @@ jobs:
             automated pr
           assignees: Donimax
           reviewers: Donimax
-
-      # - name: Push File
-      #   run: |
-      #     git config --global user.name 'GitHub Action'
-      #     git config --global user.email 'action@github.com'
-      #     git add packages/check_mk_agent-"$(date +'%Y.%m.%d')".tgz packages/check_mk_agent-"$(date +'%Y.%m.%d')".tgz.md5 $version_file $plugin_file
-      #     git commit -m "Add check_mk_agent test $latest_version"
-      # - name: Push changes
-      #   uses: ad-m/github-push-action@master
-      #   with:
-      #     branch: ${{ github.ref }}
