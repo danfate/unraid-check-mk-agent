@@ -51,14 +51,14 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
         with: 
-          commit-message: Bump check_mk_agent to ${{ latest_version }}
+          commit-message: Bump check_mk_agent to ${{ env.latest_version }}
           committer: GitHub <noreply@github.com>
           author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
-          branch: bump-${{ latest_version }}
+          branch: bump-${{ env.latest_version }}
           delete-branch: true
-          title: 'Check_mk_agent to ${{ latest_version }}'
+          title: 'Check_mk_agent to ${{ env.latest_version }}'
           body: |
-            Bump Checkmk agent to ${{ latest_version }}
+            Bump Checkmk agent to ${{ env.latest_version }}
           labels: |
             automated pr
           assignees: Donimax
