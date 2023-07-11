@@ -51,20 +51,20 @@ jobs:
           fi
 
       - name: Extract
-        if: steps.check_pr.outputs.skip != null || !steps.check_pr.outputs.skip != null
+        if: steps.check_version.outputs.skip != null || steps.check_pr.outputs.skip != null
         run: |
           echo "Extract"
           #container_id=$(docker create "$image:$latest_version")
           #docker cp "$container_id:/opt/omd/versions/$latest_version.cre/share/check_mk/agents/check-mk-agent_$latest_version-1_all.deb" "$destination_path"
 
       - name: Create Slackware package
-        if: ${{ steps.check_pr.outputs.skip != null }} || ${{ !steps.check_pr.outputs.skip != null }}
+        if: ${{ steps.check_version.outputs.skip != null }} || ${{ steps.check_pr.outputs.skip != null }}
         run: |
           echo "Create Slackware package"
           #docker run --rm -v $(pwd)/:/build vbatts/slackware:latest sh /build/source/compile_docker.sh
 
       - name: Update plugin file
-        if: steps.check_pr.outputs.skip == null || !steps.check_pr.outputs.skip == null
+        if: steps.check_version.outputs.skip == null || steps.check_pr.outputs.skip == null
         run: |
           echo "Update plugin file"
           #md5_hash=$(md5sum packages/check_mk_agent-"$(date +'%Y.%m.%d').$version".tgz | cut -d' ' -f1)
