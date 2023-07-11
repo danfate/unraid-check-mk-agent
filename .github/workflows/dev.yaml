@@ -53,7 +53,8 @@ jobs:
       - name: Extract
         if: steps.check_pr.outputs.skip != null || !steps.check_pr.outputs.skip != null
         run: |
-          container_id=$(docker create "$image:$latest_version")
+          echo "Extract"
+          #container_id=$(docker create "$image:$latest_version")
           #docker cp "$container_id:/opt/omd/versions/$latest_version.cre/share/check_mk/agents/check-mk-agent_$latest_version-1_all.deb" "$destination_path"
 
       - name: Create Slackware package
