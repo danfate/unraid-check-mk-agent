@@ -86,6 +86,32 @@ jobs:
         run: |
           echo "Test"
 
+      - name: Test3
+        if: ${{ steps.check_version.outputs.skip != true }} || ${{ steps.check_pr.outputs.skip != true }}
+        run: |
+          echo "Test"
+
+      - name: Test4
+        if: ${{ steps.check_version.outputs.skip == true }} || ${{ steps.check_pr.outputs.skip == true }}
+        run: |
+          echo "Test"
+
+      - name: Skip other steps if any condition is true
+        if: steps.check_version.outputs.skip == 'true' || steps.check_pr.outputs.skip == 'true'
+        run: |
+          echo "Skipping other steps"
+
+      - name: Step 1
+        if: steps.check_version.outputs.skip != 'true' && steps.check_pr.outputs.skip != 'true'
+        run: |
+          echo "Running Step 1"
+
+      - name: Step 2
+        if: steps.check_version.outputs.skip != 'true' && steps.check_pr.outputs.skip != 'true'
+        run: |
+          echo "Running Step 2"
+
+
       # - name: Create Pull Request
       #   if: '!steps.check_pr.outputs.skip'
       #   uses: peter-evans/create-pull-request@v5
