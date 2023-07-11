@@ -39,7 +39,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           # Set the desired pull request name to check
-          PULL_REQUEST_NAME="Test"
+          PULL_REQUEST_NAME="Check_mk_agent to ${{ env.latest_version }}"
           
           # Use GitHub CLI to check if a pull request with the specified name exists in the current repository
           RESPONSE=$(gh pr list --repo "$GITHUB_REPOSITORY" --state all --search "$PULL_REQUEST_NAME" --json "number" | jq '.[0].number')
