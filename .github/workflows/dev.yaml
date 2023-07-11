@@ -76,8 +76,13 @@ jobs:
           #sed -i 's@<!ENTITY md5       "[^"]*">@<!ENTITY md5       "'"${md5_hash}"'">@' check_mk_agent$version.plg
           #sed -i "/<CHANGES>/{n;s/.*/\n###$(date +'%Y.%m.%d')\n- Bumped checkmk_agent to $latest_version\n&/}" check_mk_agent$version.plg
 
-      - name: Test2
+      - name: Test1
         if: ${{ steps.check_version.outputs.skip == null }} || ${{ steps.check_pr.outputs.skip == null }}
+        run: |
+          echo "Test"
+
+      - name: Test2
+        if: ${{ !steps.check_version.outputs.skip }} || ${{ !steps.check_pr.outputs.skip }}
         run: |
           echo "Test"
 
