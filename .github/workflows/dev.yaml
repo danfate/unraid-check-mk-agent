@@ -35,6 +35,8 @@ jobs:
       - name: Check if Pull Request already exists
         if: '!steps.check_version.outputs.skip'
         id: check_pr
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           # Set the desired pull request name to check
           PULL_REQUEST_NAME="Check_mk_agent to ${{ env.latest_version }}"
