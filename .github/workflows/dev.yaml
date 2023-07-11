@@ -7,7 +7,7 @@ env:
   destination_path: 'check_mk_agent'
 
 jobs:
-  extract-push:
+  extract-build-push:
     runs-on: ubuntu-latest
 
     steps:
@@ -73,7 +73,12 @@ jobs:
           #sed -i 's/<!ENTITY version   "[^"]*">/<!ENTITY version   "'$(date +'%Y.%m.%d').$version'">/' check_mk_agent$version.plg
           #sed -i 's@<!ENTITY md5       "[^"]*">@<!ENTITY md5       "'"${md5_hash}"'">@' check_mk_agent$version.plg
           #sed -i "/<CHANGES>/{n;s/.*/\n###$(date +'%Y.%m.%d')\n- Bumped checkmk_agent to $latest_version\n&/}" check_mk_agent$version.plg
-      
+
+      - name: Test2
+        if: ${{ steps.check_version.outputs.skip == null }} || ${{ steps.check_pr.outputs.skip == null }}
+        run: |
+          echo "Test"
+
       # - name: Create Pull Request
       #   if: '!steps.check_pr.outputs.skip'
       #   uses: peter-evans/create-pull-request@v5
