@@ -45,11 +45,11 @@ jobs:
           RESPONSE=$(gh pr list --repo "$GITHUB_REPOSITORY" --state all --search "$PULL_REQUEST_NAME" --json "number" | jq '.[0].number')
           
           # Check if the response is empty (means the pull request doesn't exist)
-          if [ -z "$RESPONSE" ]; then
-            echo "The pull request does not exist."
-          else
+          if ((RESPONSE > 0)); then
             echo "The pull request already exists."
             echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "The pull request does not exist."
           fi
 
       - name: Extract
