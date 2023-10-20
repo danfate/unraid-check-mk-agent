@@ -1,7 +1,7 @@
 <?xml version='1.0' standalone='yes'?>
 <!DOCTYPE PLUGIN [
   <!ENTITY name      "check_mk_agent">
-  <!ENTITY author    "donimax">
+  <!ENTITY author    "danfate">
   <!ENTITY version   "2023.10.20.22">
   <!ENTITY gitURL    "https://raw.githubusercontent.com/&author;/unraid-check-mk-agent/master">
   <!ENTITY pluginURL "&gitURL;/&name;22.plg">
@@ -12,7 +12,7 @@
   <!ENTITY xinetdmd5 "1da784d01bd5c8a8edb05feeef1ac07e">
 ]>
 
-<PLUGIN  name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;" min="6.8.3" support="https://github.com/donimax/unraid-check-mk-agent">
+<PLUGIN  name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;" min="6.8.3" support="https://github.com/danfate/unraid-check-mk-agent">
 
 <CHANGES>
 
@@ -70,7 +70,7 @@ To use encryption edit the file '/boot/config/plugins/check_mk_agent/encryption.
 
 #Download check_mk xinetd file
 if [ ! -f "/etc/xinetd.d/check_mk" ]; then
-  wget -q -nc --show-progress --progress=bar:force:noscroll -O "/etc/xinetd.d/check_mk" "https://raw.githubusercontent.com/Donimax/unraid-check-mk-agent/master/build/check_mk_xinetd"
+  wget -q -nc --show-progress --progress=bar:force:noscroll -O "/etc/xinetd.d/check_mk" "https://raw.githubusercontent.com/danfate/unraid-check-mk-agent/master/build/check_mk_xinetd"
 fi
 
 #Download icon
